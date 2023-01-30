@@ -47,6 +47,7 @@ public class SecondActivity extends AppCompatActivity {
             previousScreenButton.performClick();
         } else {
             selectedAction = extras.getString("selectedAction");
+            transitionToScreen3Intent.putExtra("selectedAction", selectedAction);
         }
 
         TextView textView = findViewById(R.id.textView2);
