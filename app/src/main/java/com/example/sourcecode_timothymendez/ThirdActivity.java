@@ -1,24 +1,18 @@
 package com.example.sourcecode_timothymendez;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
-import java.io.File;
-import java.util.List;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class ThirdActivity extends AppCompatActivity {
 
@@ -32,13 +26,13 @@ public class ThirdActivity extends AppCompatActivity {
     Button addVideoButton;
     Button recordVideoButton;
     ListView videoPreview;
-
-    // TODO: LIMIT VIDEO TO 5 SECONDS
+    UploadVideoClass uploadVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_third);
+        uploadVideo = new UploadVideoClass("insertBaseURL");
 
         if (!hasFrontCamera()) {
             Toastyyy("Does Not Have Front Camera");
@@ -101,7 +95,7 @@ public class ThirdActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 // TODO: Upload Video to Server. Can be done by opening Video Gallery.
                 Toastyyy("Video Recorded. Practice #" + practiceNumber);
-                Toastyyy(data.getDataString());
+                uploadVideo.UploadVideo(data.getData());
                 practiceNumber++;
             } else if (resultCode == RESULT_CANCELED) {
                 Toastyyy("Video Cancelled");
@@ -134,6 +128,7 @@ public class ThirdActivity extends AppCompatActivity {
 
     private void dispatchTakeVideoIntent(String selectedAction) {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
         takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, selectedAction + "_PRACTICE_" + practiceNumber + "Mendez" + ".mp4");
         if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
@@ -152,27 +147,4 @@ public class ThirdActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    private String getFilePath(Uri uri) {
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        cursor.moveToFirst();
-        String document_id = cursor.getString(0);
-
-        document_id = document_id.substring(document_id.lastIndexOf(":") + 1);
-        cursor.close();
-
-        cursor = getContentResolver().query(
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                null, MediaStore.Images.Media._ID + " = ? ", new String[]{document_id}, null
-        );
-        cursor.moveToFirst();
-        int columnIndex = cursor.getColumnIndex(MediaStore.Video.Media.DATA);
-        if (!(columnIndex >= 0)) {
-            Toastyyy("Column Index Not Bigger or Equal 0");
-            return "";
-        }
-        String path = cursor.getString(columnIndex);
-        cursor.close();
-
-        return path;
-    }
 }
