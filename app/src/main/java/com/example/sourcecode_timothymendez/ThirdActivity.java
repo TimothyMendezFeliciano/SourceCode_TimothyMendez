@@ -2,6 +2,7 @@ package com.example.sourcecode_timothymendez;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -13,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.File;
 
 public class ThirdActivity extends AppCompatActivity {
 
@@ -78,13 +81,16 @@ public class ThirdActivity extends AppCompatActivity {
                 }
         );
 
-        if (extras == null) {
-//            previousScreenButton.performClick();
-        } else {
+        if (extras != null) {
             selectedAction = extras.getString("selectedAction");
             transitionToScreen2Intent.putExtra("selectedAction", selectedAction);
         }
 
+        // TODO: Create Service call to verify only 3 videos per action are saved.
+        if (practiceNumber >= MAXIMUM_VIDEOS) {
+            Toastyyy("Only 3 videos pero action");
+            return;
+        }
         dispatchTakeVideoIntent(selectedAction);
     }
 
@@ -93,9 +99,10 @@ public class ThirdActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_VIDEO_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                // TODO: Upload Video to Server. Can be done by opening Video Gallery.
+                // TODO: Create the Server and Confirm Video Upload
                 Toastyyy("Video Recorded. Practice #" + practiceNumber);
-                uploadVideo.UploadVideo(data.getData());
+                File succesfullyRenamedFile = renameFile(data.getData(), practiceNumber);
+                uploadVideo.UploadVideo(Uri.parse(succesfullyRenamedFile.toString()));
                 practiceNumber++;
             } else if (resultCode == RESULT_CANCELED) {
                 Toastyyy("Video Cancelled");
@@ -137,6 +144,33 @@ public class ThirdActivity extends AppCompatActivity {
         }
     }
 
+    private File renameFile(Uri videoUri, int practiceNumber) {
+        File originalFile = new File(getFilePath(videoUri));
+        String newFileName = renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber;
+        File renamedFile = new File(originalFile.getParent(), newFileName);
+
+        if (originalFile.renameTo(renamedFile)) {
+            return originalFile;
+        } else {
+            return renamedFile;
+        }
+    }
+
+    private String getFilePath(Uri videoUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = getContentResolver().query(videoUri, proj, null, null, null);
+            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(columnIndex);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
     private Boolean hasFrontCamera() {
         return getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_CAMERA_FRONT
@@ -145,6 +179,47 @@ public class ThirdActivity extends AppCompatActivity {
 
     private void Toastyyy(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private String renameGesture(String selectedAction) {
+        switch (selectedAction) {
+            case "0":
+                return "Num0";
+            case "1":
+                return "Num1";
+            case "2":
+                return "Num2";
+            case "3":
+                return "Num3";
+            case "4":
+                return "Num4";
+            case "5":
+                return "Num5";
+            case "6":
+                return "Num6";
+            case "7":
+                return "Num7";
+            case "8":
+                return "Num8";
+            case "9":
+                return "Num9";
+            case "Turn On Light":
+                return "LightOn";
+            case "Turn Off Light":
+                return "LightOff";
+            case "Turn On Fan":
+                return "FanOn";
+            case "Turn Off Fan":
+                return "FanOff";
+            case "Increase Fan Speed":
+                return "FanUp";
+            case "Decrease Fan Speed":
+                return "FanDown";
+            case "Set Thermostat to Specified Temperature":
+                return "SetThermo";
+            default:
+                return "";
+        }
     }
 
 }
