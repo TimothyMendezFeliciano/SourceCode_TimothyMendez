@@ -33,7 +33,7 @@ public class SecondActivity extends AppCompatActivity {
                 }
         );
 
-        Button nextScreenButton = (Button) findViewById(R.id.goThirdScreen);
+        Button nextScreenButton = (Button) findViewById(R.id.practiceButton);
         nextScreenButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override

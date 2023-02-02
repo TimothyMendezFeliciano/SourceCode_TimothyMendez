@@ -22,21 +22,34 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class UploadVideoClass extends Service {
 
     private FileUploadService fileUploadService;
-    private String baseURL = "";
 
     private void setupRetrofit() {
         Retrofit retrofit = new Retrofit.Builder()
 //                TODO: REPLACE WITH URL FROM SERVER
-                .baseUrl(baseURL)
+                .baseUrl("http://192.168.0.20:5000")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         fileUploadService = retrofit.create(FileUploadService.class);
     }
 
-    public UploadVideoClass(String baseURL) {
-        this.baseURL = baseURL;
+    public UploadVideoClass() {
         setupRetrofit();
+    }
+
+    public void ContactServer() {
+        Call<ResponseBody> serverCall = fileUploadService.contactServer();
+        serverCall.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+            }
+        });
     }
 
     public void UploadVideo(Uri videoUri) {

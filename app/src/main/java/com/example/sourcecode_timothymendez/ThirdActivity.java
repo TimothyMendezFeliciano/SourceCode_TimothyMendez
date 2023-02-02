@@ -8,12 +8,19 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 
@@ -26,23 +33,17 @@ public class ThirdActivity extends AppCompatActivity {
     private int videoSelected = 0;
     private String[] selectedPath = new String[3];
     static final int MAXIMUM_VIDEOS = 3;
-    Button addVideoButton;
     Button recordVideoButton;
-    ListView videoPreview;
-    UploadVideoClass uploadVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_third);
-        uploadVideo = new UploadVideoClass("insertBaseURL");
 
         if (!hasFrontCamera()) {
             Toastyyy("Does Not Have Front Camera");
             return;
         }
-
-        videoPreview = (ListView) findViewById(R.id.videoPreview);
 
         Bundle extras = getIntent().getExtras();
 
@@ -54,19 +55,6 @@ public class ThirdActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         startActivity(transitionToScreen2Intent);
-                    }
-                }
-        );
-
-        addVideoButton = (Button) findViewById(R.id.addVideo);
-        addVideoButton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent();
-                        intent.setType("video/*");
-                        intent.setAction(Intent.ACTION_GET_CONTENT);
-                        startActivityForResult(Intent.createChooser(intent, "Select a Video"), SELECT_VIDEO);
                     }
                 }
         );
@@ -99,36 +87,17 @@ public class ThirdActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_VIDEO_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                // TODO: Create the Server and Confirm Video Upload
-                Toastyyy("Video Recorded. Practice #" + practiceNumber);
+                // TODO: Replace all this with uploading to the Firebase instance
+//                Toastyyy("Video Recorded. Practice #" + practiceNumber);
                 File succesfullyRenamedFile = renameFile(data.getData(), practiceNumber);
-                uploadVideo.UploadVideo(Uri.parse(succesfullyRenamedFile.toString()));
+
+//                uploadVideo.UploadVideo(Uri.parse(succesfullyRenamedFile.toString()));
+                uploadVideoToDatabase(selectedAction, Uri.parse(succesfullyRenamedFile.toString()));
                 practiceNumber++;
             } else if (resultCode == RESULT_CANCELED) {
                 Toastyyy("Video Cancelled");
             } else {
                 Toastyyy("Failed to Record Video");
-            }
-        }
-
-        if (requestCode == SELECT_VIDEO) {
-//            if (videoSelected >= MAXIMUM_VIDEOS) return;
-            if (resultCode == RESULT_OK) {
-                Uri selectedVideoUri = data.getData();
-                Toastyyy(selectedVideoUri.toString());
-//                TODO: This getFilePath method is buggy. Must write new one to get video.
-//                selectedPath[videoSelected] = getFilePath(selectedVideoUri);
-                selectedPath[videoSelected] = selectedVideoUri.toString();
-                videoSelected++;
-                for (int i = 0; i <= videoSelected; i++) {
-                    TextView textViewForVideoPreview = new TextView(this);
-                    textViewForVideoPreview.setText(selectedPath[i]);
-                    videoPreview.addHeaderView(textViewForVideoPreview);
-                }
-            } else if (resultCode == RESULT_CANCELED) {
-                Toastyyy("Video Selection Canceled");
-            } else {
-                Toastyyy("Failed to Select Video");
             }
         }
     }
@@ -142,6 +111,28 @@ public class ThirdActivity extends AppCompatActivity {
         } else {
             Toastyyy("Error openening camera");
         }
+    }
+
+    private void uploadVideoToDatabase(String selectedAction, Uri videoUri) {
+        Toastyyy(videoUri.getPath());
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageRef = storage.getReference();
+
+        StorageReference videosRef = storageRef.child("videos" + "/" + selectedAction);
+
+        UploadTask uploadTask = videosRef.putFile(videoUri);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toastyyy("Upload Failed" + e.getLocalizedMessage());
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                Toastyyy("Upload Succesful!");
+            }
+        });
+
     }
 
     private File renameFile(Uri videoUri, int practiceNumber) {

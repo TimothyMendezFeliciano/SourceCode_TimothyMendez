@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "569095032573",
+    "project_id": "sourcecode-timothymendez",
+    "storage_bucket": "sourcecode-timothymendez.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:569095032573:android:3b69fb0c99c759d1eef894",
+        "android_client_info": {
+          "package_name": "com.example.sourcecode_timothymendez"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "569095032573-lrv9mrqaap7uk9ru1ga5ck03617l2lfd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBwqFT4GSsuH5kzK8DZwvZxI3Iu2aybgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "569095032573-lrv9mrqaap7uk9ru1ga5ck03617l2lfd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
