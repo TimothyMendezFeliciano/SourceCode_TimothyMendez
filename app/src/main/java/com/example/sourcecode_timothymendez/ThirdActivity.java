@@ -1,11 +1,8 @@
 package com.example.sourcecode_timothymendez;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,27 +18,18 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-
 public class ThirdActivity extends AppCompatActivity {
 
     static final int REQUEST_VIDEO_CAPTURE = 1;
-    static final int SELECT_VIDEO = 3;
     private String selectedAction = "";
     private int practiceNumber = 1;
-    private int videoSelected = 0;
-    private String[] selectedPath = new String[3];
     static final int MAXIMUM_VIDEOS = 3;
     Button recordVideoButton;
+    Button previousScreenButton;
     TextView errorLogger;
     ProgressBar spinner;
 
@@ -63,7 +51,7 @@ public class ThirdActivity extends AppCompatActivity {
 
         Intent transitionToScreen2Intent = new Intent(this, SecondActivity.class);
 
-        Button previousScreenButton = (Button) findViewById(R.id.returnScreen2);
+        previousScreenButton = (Button) findViewById(R.id.returnScreen2);
         previousScreenButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -135,6 +123,8 @@ public class ThirdActivity extends AppCompatActivity {
         UploadTask uploadTask = videosRef.putFile(videoUri);
 
         uploadTask.addOnProgressListener(snapshot -> {
+            previousScreenButton.setEnabled(false);
+            recordVideoButton.setEnabled(false);
             spinner.setVisibility(View.VISIBLE);
         });
 
@@ -152,6 +142,8 @@ public class ThirdActivity extends AppCompatActivity {
             }
         });
         spinner.setVisibility(View.GONE);
+        recordVideoButton.setEnabled(true);
+        previousScreenButton.setEnabled(true);
     }
 
 //    private File renameFile(Uri videoUri, int practiceNumber) throws IOException {
