@@ -20,9 +20,30 @@
         android:id="@+id/recordVideo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="74dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="40dp"
         android:text="Record"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="276dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/errorLogger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="168dp"
+        android:text="TextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="96dp"
+        android:layout_marginTop="180dp"
+        app:layout_constraintStart_toEndOf="@+id/errorLogger"
+        app:layout_constraintTop_toBottomOf="@+id/errorLogger" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

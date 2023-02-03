@@ -1,5 +1,8 @@
 package com.example.sourcecode_timothymendez;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -8,6 +11,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,6 +28,9 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
 
 public class ThirdActivity extends AppCompatActivity {
 
@@ -34,11 +42,17 @@ public class ThirdActivity extends AppCompatActivity {
     private String[] selectedPath = new String[3];
     static final int MAXIMUM_VIDEOS = 3;
     Button recordVideoButton;
+    TextView errorLogger;
+    ProgressBar spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_third);
+        errorLogger = (TextView) findViewById(R.id.errorLogger);
+        spinner = (ProgressBar) findViewById(R.id.progressBar);
+
+        spinner.setVisibility(View.GONE);
 
         if (!hasFrontCamera()) {
             Toastyyy("Does Not Have Front Camera");
@@ -82,18 +96,15 @@ public class ThirdActivity extends AppCompatActivity {
         dispatchTakeVideoIntent(selectedAction);
     }
 
+    @SuppressLint("WrongConstant")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_VIDEO_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                // TODO: Replace all this with uploading to the Firebase instance
-//                Toastyyy("Video Recorded. Practice #" + practiceNumber);
-                File succesfullyRenamedFile = renameFile(data.getData(), practiceNumber);
+                Uri videoUri = data.getData();
+                uploadVideoToDatabase(selectedAction, videoUri);
 
-//                uploadVideo.UploadVideo(Uri.parse(succesfullyRenamedFile.toString()));
-                uploadVideoToDatabase(selectedAction, Uri.parse(succesfullyRenamedFile.toString()));
-                practiceNumber++;
             } else if (resultCode == RESULT_CANCELED) {
                 Toastyyy("Video Cancelled");
             } else {
@@ -105,7 +116,7 @@ public class ThirdActivity extends AppCompatActivity {
     private void dispatchTakeVideoIntent(String selectedAction) {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
-        takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, selectedAction + "_PRACTICE_" + practiceNumber + "Mendez" + ".mp4");
+        takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber + ".mp4");
         if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
         } else {
@@ -115,52 +126,70 @@ public class ThirdActivity extends AppCompatActivity {
 
     private void uploadVideoToDatabase(String selectedAction, Uri videoUri) {
         Toastyyy(videoUri.getPath());
+
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 
-        StorageReference videosRef = storageRef.child("videos" + "/" + selectedAction);
+        StorageReference videosRef = storageRef.child("videos/" + renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber);
 
         UploadTask uploadTask = videosRef.putFile(videoUri);
+
+        uploadTask.addOnProgressListener(snapshot -> {
+            spinner.setVisibility(View.VISIBLE);
+        });
+
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toastyyy("Upload Failed" + e.getLocalizedMessage());
+                Toastyyy("Upload Failed");
+                errorLogger.setText(e.getCause().toString());
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Toastyyy("Upload Succesful!");
+                errorLogger.setText("Record another video. " + (MAXIMUM_VIDEOS - practiceNumber) + " remaining.");
             }
         });
-
+        spinner.setVisibility(View.GONE);
     }
 
-    private File renameFile(Uri videoUri, int practiceNumber) {
-        File originalFile = new File(getFilePath(videoUri));
-        String newFileName = renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber;
-        File renamedFile = new File(originalFile.getParent(), newFileName);
-
-        if (originalFile.renameTo(renamedFile)) {
-            return originalFile;
-        } else {
-            return renamedFile;
-        }
-    }
-
-    private String getFilePath(Uri videoUri) {
-        Cursor cursor = null;
-        try {
-            String[] proj = {MediaStore.Images.Media.DATA};
-            cursor = getContentResolver().query(videoUri, proj, null, null, null);
-            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            return cursor.getString(columnIndex);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-    }
+//    private File renameFile(Uri videoUri, int practiceNumber) throws IOException {
+//        File originalFile = new File(getFilePath(videoUri));
+//        String newFileName = renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber;
+//        File renamedFile = new File(originalFile.getParent(), newFileName);
+//
+////        return new File(
+////                Files.move(
+////                        originalFile.toPath(),
+////                        renamedFile.toPath(),
+////                        REPLACE_EXISTING
+////                ).toString()
+////        );
+//
+//        if (originalFile.renameTo(renamedFile)) {
+//            Toastyyy("Rename Succesful!");
+//            return originalFile;
+//        } else {
+//            Toastyyy("Unable to rename file");
+//            return renamedFile;
+//        }
+//    }
+//
+//    private String getFilePath(Uri videoUri) {
+//        Cursor cursor = null;
+//        try {
+//            String[] proj = {MediaStore.Images.Media.DATA};
+//            cursor = getContentResolver().query(videoUri, proj, null, null, null);
+//            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+//            cursor.moveToFirst();
+//            return cursor.getString(columnIndex);
+//        } finally {
+//            if (cursor != null) {
+//                cursor.close();
+//            }
+//        }
+//    }
 
     private Boolean hasFrontCamera() {
         return getPackageManager().hasSystemFeature(
