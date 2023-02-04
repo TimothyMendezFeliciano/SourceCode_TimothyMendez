@@ -3,6 +3,7 @@ package com.example.sourcecode_timothymendez;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,11 +13,15 @@ import android.widget.VideoView;
 public class SecondActivity extends AppCompatActivity {
 
     private String selectedAction = "";
+//    private DatabaseHelper databaseHelper;
+    private int practiceNumber = 0;
+    static final int MAXIMUM_VIDEOS = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
+//        databaseHelper = new DatabaseHelper(this);
 
         Bundle extras = getIntent().getExtras();
 
@@ -44,14 +49,20 @@ public class SecondActivity extends AppCompatActivity {
         );
 
         if (extras == null) {
-            previousScreenButton.performClick();
+//            previousScreenButton.performClick();
         } else {
             selectedAction = extras.getString("selectedAction");
             transitionToScreen3Intent.putExtra("selectedAction", selectedAction);
         }
+//        Cursor dataCursor = databaseHelper.getData(databaseHelper.renameGesture(selectedAction));
+//
+//        while (dataCursor.moveToNext()) {
+//            practiceNumber = dataCursor.getColumnIndexOrThrow(databaseHelper.getColumnPracticeNumber());
+//        }
+//        dataCursor.close();
 
         TextView textView = findViewById(R.id.textView2);
-        textView.setText("Displaying Video For: " + selectedAction);
+        textView.setText("Remaining" + (MAXIMUM_VIDEOS - practiceNumber) + " attempts for" + selectedAction);
 
         VideoView videoView = (VideoView) findViewById(R.id.videoView);
         videoView.setVideoPath("android.resource://" + getPackageName() + "/" + findVideo(selectedAction));

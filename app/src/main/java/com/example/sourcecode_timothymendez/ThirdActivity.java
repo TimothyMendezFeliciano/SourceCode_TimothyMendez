@@ -3,6 +3,7 @@ package com.example.sourcecode_timothymendez;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -26,20 +27,22 @@ public class ThirdActivity extends AppCompatActivity {
 
     static final int REQUEST_VIDEO_CAPTURE = 1;
     private String selectedAction = "";
-    private int practiceNumber = 1;
+    private int practiceNumber = 0;
     static final int MAXIMUM_VIDEOS = 3;
     Button recordVideoButton;
     Button previousScreenButton;
     TextView errorLogger;
     ProgressBar spinner;
+    // TODO: REMOVER DATABASEHELPER PAL CARAJO. APRENDE USAR FIREBASE. MALDITASEA JAVA TAMBIEN.
+    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_third);
+        databaseHelper = new DatabaseHelper(this);
         errorLogger = (TextView) findViewById(R.id.errorLogger);
         spinner = (ProgressBar) findViewById(R.id.progressBar);
-
         spinner.setVisibility(View.GONE);
 
         if (!hasFrontCamera()) {
@@ -76,6 +79,13 @@ public class ThirdActivity extends AppCompatActivity {
             transitionToScreen2Intent.putExtra("selectedAction", selectedAction);
         }
 
+        Cursor dataCursor = databaseHelper.getData(databaseHelper.renameGesture(selectedAction));
+
+        while (dataCursor.moveToNext()) {
+            practiceNumber = dataCursor.getColumnIndexOrThrow(databaseHelper.getColumnPracticeNumber());
+        }
+        errorLogger.setText("Attempt #" + practiceNumber + ". For " + selectedAction);
+        dataCursor.close();
         // TODO: Create Service call to verify only 3 videos per action are saved.
         if (practiceNumber >= MAXIMUM_VIDEOS) {
             Toastyyy("Only 3 videos pero action");
@@ -104,7 +114,7 @@ public class ThirdActivity extends AppCompatActivity {
     private void dispatchTakeVideoIntent(String selectedAction) {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
-        takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber + ".mp4");
+        takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, databaseHelper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber + ".mp4");
         if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
         } else {
@@ -118,7 +128,7 @@ public class ThirdActivity extends AppCompatActivity {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 
-        StorageReference videosRef = storageRef.child("videos/" + renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber);
+        StorageReference videosRef = storageRef.child(databaseHelper.renameGesture(selectedAction)).child(databaseHelper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber);
 
         UploadTask uploadTask = videosRef.putFile(videoUri);
 
@@ -138,6 +148,8 @@ public class ThirdActivity extends AppCompatActivity {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Toastyyy("Upload Succesful!");
+                databaseHelper.addData(databaseHelper.renameGesture(selectedAction), practiceNumber++, true);
+                practiceNumber = new Integer(databaseHelper.getData(databaseHelper.renameGesture(selectedAction)).toString());
                 errorLogger.setText("Record another video. " + (MAXIMUM_VIDEOS - practiceNumber) + " remaining.");
             }
         });
@@ -145,43 +157,6 @@ public class ThirdActivity extends AppCompatActivity {
         recordVideoButton.setEnabled(true);
         previousScreenButton.setEnabled(true);
     }
-
-//    private File renameFile(Uri videoUri, int practiceNumber) throws IOException {
-//        File originalFile = new File(getFilePath(videoUri));
-//        String newFileName = renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber;
-//        File renamedFile = new File(originalFile.getParent(), newFileName);
-//
-////        return new File(
-////                Files.move(
-////                        originalFile.toPath(),
-////                        renamedFile.toPath(),
-////                        REPLACE_EXISTING
-////                ).toString()
-////        );
-//
-//        if (originalFile.renameTo(renamedFile)) {
-//            Toastyyy("Rename Succesful!");
-//            return originalFile;
-//        } else {
-//            Toastyyy("Unable to rename file");
-//            return renamedFile;
-//        }
-//    }
-//
-//    private String getFilePath(Uri videoUri) {
-//        Cursor cursor = null;
-//        try {
-//            String[] proj = {MediaStore.Images.Media.DATA};
-//            cursor = getContentResolver().query(videoUri, proj, null, null, null);
-//            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-//            cursor.moveToFirst();
-//            return cursor.getString(columnIndex);
-//        } finally {
-//            if (cursor != null) {
-//                cursor.close();
-//            }
-//        }
-//    }
 
     private Boolean hasFrontCamera() {
         return getPackageManager().hasSystemFeature(
@@ -191,47 +166,6 @@ public class ThirdActivity extends AppCompatActivity {
 
     private void Toastyyy(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
-    private String renameGesture(String selectedAction) {
-        switch (selectedAction) {
-            case "0":
-                return "Num0";
-            case "1":
-                return "Num1";
-            case "2":
-                return "Num2";
-            case "3":
-                return "Num3";
-            case "4":
-                return "Num4";
-            case "5":
-                return "Num5";
-            case "6":
-                return "Num6";
-            case "7":
-                return "Num7";
-            case "8":
-                return "Num8";
-            case "9":
-                return "Num9";
-            case "Turn On Light":
-                return "LightOn";
-            case "Turn Off Light":
-                return "LightOff";
-            case "Turn On Fan":
-                return "FanOn";
-            case "Turn Off Fan":
-                return "FanOff";
-            case "Increase Fan Speed":
-                return "FanUp";
-            case "Decrease Fan Speed":
-                return "FanDown";
-            case "Set Thermostat to Specified Temperature":
-                return "SetThermo";
-            default:
-                return "";
-        }
     }
 
 }
