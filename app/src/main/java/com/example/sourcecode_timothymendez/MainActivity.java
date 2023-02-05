@@ -1,8 +1,6 @@
 package com.example.sourcecode_timothymendez;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,24 +15,14 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private String selectedAction = "";
-    private DatabaseHelper databaseHelper;
     private String[] gestures;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        databaseHelper = new DatabaseHelper(this);
         Intent transitionToScreen2Intent = new Intent(this, SecondActivity.class);
         gestures = getResources().getStringArray(R.array.gestures_action);
-
-        try {
-            for (String gesture : gestures) {
-                databaseHelper.addData(databaseHelper.renameGesture(gesture), 0, false);
-            }
-        } catch (Exception e) {
-            Toastyyy(e.getMessage());
-        }
 
         Button nextScreenButton = (Button) findViewById(R.id.navigateButton);
         nextScreenButton.setEnabled(false);

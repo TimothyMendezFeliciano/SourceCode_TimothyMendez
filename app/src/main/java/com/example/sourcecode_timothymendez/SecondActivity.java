@@ -13,7 +13,6 @@ import android.widget.VideoView;
 public class SecondActivity extends AppCompatActivity {
 
     private String selectedAction = "";
-//    private DatabaseHelper databaseHelper;
     private int practiceNumber = 0;
     static final int MAXIMUM_VIDEOS = 3;
 
@@ -21,7 +20,6 @@ public class SecondActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
-//        databaseHelper = new DatabaseHelper(this);
 
         Bundle extras = getIntent().getExtras();
 
@@ -54,12 +52,6 @@ public class SecondActivity extends AppCompatActivity {
             selectedAction = extras.getString("selectedAction");
             transitionToScreen3Intent.putExtra("selectedAction", selectedAction);
         }
-//        Cursor dataCursor = databaseHelper.getData(databaseHelper.renameGesture(selectedAction));
-//
-//        while (dataCursor.moveToNext()) {
-//            practiceNumber = dataCursor.getColumnIndexOrThrow(databaseHelper.getColumnPracticeNumber());
-//        }
-//        dataCursor.close();
 
         TextView textView = findViewById(R.id.textView2);
         textView.setText("Remaining" + (MAXIMUM_VIDEOS - practiceNumber) + " attempts for" + selectedAction);

@@ -3,7 +3,6 @@ package com.example.sourcecode_timothymendez;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -33,14 +32,13 @@ public class ThirdActivity extends AppCompatActivity {
     Button previousScreenButton;
     TextView errorLogger;
     ProgressBar spinner;
-    // TODO: REMOVER DATABASEHELPER PAL CARAJO. APRENDE USAR FIREBASE. MALDITASEA JAVA TAMBIEN.
-    private DatabaseHelper databaseHelper;
+    Helper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_third);
-        databaseHelper = new DatabaseHelper(this);
+        helper = new Helper();
         errorLogger = (TextView) findViewById(R.id.errorLogger);
         spinner = (ProgressBar) findViewById(R.id.progressBar);
         spinner.setVisibility(View.GONE);
@@ -79,18 +77,6 @@ public class ThirdActivity extends AppCompatActivity {
             transitionToScreen2Intent.putExtra("selectedAction", selectedAction);
         }
 
-        Cursor dataCursor = databaseHelper.getData(databaseHelper.renameGesture(selectedAction));
-
-        while (dataCursor.moveToNext()) {
-            practiceNumber = dataCursor.getColumnIndexOrThrow(databaseHelper.getColumnPracticeNumber());
-        }
-        errorLogger.setText("Attempt #" + practiceNumber + ". For " + selectedAction);
-        dataCursor.close();
-        // TODO: Create Service call to verify only 3 videos per action are saved.
-        if (practiceNumber >= MAXIMUM_VIDEOS) {
-            Toastyyy("Only 3 videos pero action");
-            return;
-        }
         dispatchTakeVideoIntent(selectedAction);
     }
 
@@ -114,7 +100,7 @@ public class ThirdActivity extends AppCompatActivity {
     private void dispatchTakeVideoIntent(String selectedAction) {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
-        takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, databaseHelper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber + ".mp4");
+        takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, helper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber + ".mp4");
         if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
         } else {
@@ -128,7 +114,7 @@ public class ThirdActivity extends AppCompatActivity {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference();
 
-        StorageReference videosRef = storageRef.child(databaseHelper.renameGesture(selectedAction)).child(databaseHelper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber);
+        StorageReference videosRef = storageRef.child(helper.renameGesture(selectedAction)).child(helper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber);
 
         UploadTask uploadTask = videosRef.putFile(videoUri);
 
@@ -148,8 +134,6 @@ public class ThirdActivity extends AppCompatActivity {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 Toastyyy("Upload Succesful!");
-                databaseHelper.addData(databaseHelper.renameGesture(selectedAction), practiceNumber++, true);
-                practiceNumber = new Integer(databaseHelper.getData(databaseHelper.renameGesture(selectedAction)).toString());
                 errorLogger.setText("Record another video. " + (MAXIMUM_VIDEOS - practiceNumber) + " remaining.");
             }
         });
