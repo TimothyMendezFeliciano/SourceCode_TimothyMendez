@@ -3,6 +3,7 @@ package com.example.sourcecode_timothymendez;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -44,14 +45,11 @@ public class SecondActivity extends AppCompatActivity {
         );
 
         if (extras == null) {
-            previousScreenButton.performClick();
+//            previousScreenButton.performClick();
         } else {
             selectedAction = extras.getString("selectedAction");
             transitionToScreen3Intent.putExtra("selectedAction", selectedAction);
         }
-
-        TextView textView = findViewById(R.id.textView2);
-        textView.setText("Displaying Video For: " + selectedAction);
 
         VideoView videoView = (VideoView) findViewById(R.id.videoView);
         videoView.setVideoPath("android.resource://" + getPackageName() + "/" + findVideo(selectedAction));
@@ -68,6 +66,7 @@ public class SecondActivity extends AppCompatActivity {
         );
 
         TextView videoName = (TextView) findViewById(R.id.videoName);
+        videoName.setText(selectedAction);
     }
 
     private int findVideo(String selectedAction) {
