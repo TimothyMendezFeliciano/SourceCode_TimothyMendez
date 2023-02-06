@@ -137,6 +137,7 @@ public class ThirdActivity extends AppCompatActivity {
         uploadTask.addOnProgressListener(snapshot -> {
             previousScreenButton.setEnabled(false);
             recordVideoButton.setEnabled(false);
+            uploadVideoButton.setEnabled(false);
             spinner.setVisibility(View.VISIBLE);
         });
 
@@ -148,6 +149,7 @@ public class ThirdActivity extends AppCompatActivity {
                 spinner.setVisibility(View.GONE);
                 recordVideoButton.setEnabled(true);
                 previousScreenButton.setEnabled(true);
+                uploadVideoButton.setEnabled(true);
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -158,6 +160,7 @@ public class ThirdActivity extends AppCompatActivity {
                 spinner.setVisibility(View.GONE);
                 recordVideoButton.setEnabled(true);
                 previousScreenButton.setEnabled(true);
+                uploadVideoButton.setEnabled(true);
             }
         });
 
