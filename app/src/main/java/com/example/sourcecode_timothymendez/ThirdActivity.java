@@ -92,7 +92,7 @@ public class ThirdActivity extends AppCompatActivity {
 
     private void dispatchTakeVideoIntent(String selectedAction) {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-        takeVideoIntent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+//        takeVideoIntent.putExtra("android.intent.extras.CAMERA_FACING", 1);
         takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 5);
         takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, helper.renameGesture(selectedAction) + "_PRACTICE_" + practiceNumber + ".mp4");
         if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
@@ -115,7 +115,6 @@ public class ThirdActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Uri videoUri = data.getData();
                 uploadVideoToDatabase(selectedAction, videoUri);
-                practiceNumber++;
             } else if (resultCode == RESULT_CANCELED) {
                 helper.Toastyyy(getApplicationContext(), "Video Cancelled");
             } else {
