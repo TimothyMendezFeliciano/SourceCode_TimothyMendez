@@ -15,14 +15,12 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     private String selectedAction = "";
-    private String[] gestures;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Intent transitionToScreen2Intent = new Intent(this, SecondActivity.class);
-        gestures = getResources().getStringArray(R.array.gestures_action);
 
         Button nextScreenButton = (Button) findViewById(R.id.navigateButton);
         nextScreenButton.setEnabled(false);
@@ -58,9 +56,5 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
-    }
-
-    private void Toastyyy(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
