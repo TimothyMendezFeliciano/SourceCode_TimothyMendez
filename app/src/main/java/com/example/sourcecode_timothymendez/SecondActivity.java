@@ -13,8 +13,6 @@ import android.widget.VideoView;
 public class SecondActivity extends AppCompatActivity {
 
     private String selectedAction = "";
-    private int practiceNumber = 0;
-    static final int MAXIMUM_VIDEOS = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +51,6 @@ public class SecondActivity extends AppCompatActivity {
             transitionToScreen3Intent.putExtra("selectedAction", selectedAction);
         }
 
-        TextView textView = findViewById(R.id.textView2);
-        textView.setText("Remaining" + (MAXIMUM_VIDEOS - practiceNumber) + " attempts for" + selectedAction);
-
         VideoView videoView = (VideoView) findViewById(R.id.videoView);
         videoView.setVideoPath("android.resource://" + getPackageName() + "/" + findVideo(selectedAction));
         videoView.start();
@@ -71,6 +66,7 @@ public class SecondActivity extends AppCompatActivity {
         );
 
         TextView videoName = (TextView) findViewById(R.id.videoName);
+        videoName.setText(selectedAction);
     }
 
     private int findVideo(String selectedAction) {

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
@@ -22,22 +21,13 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
 public class ThirdActivity extends AppCompatActivity {
 
     static final int REQUEST_VIDEO_CAPTURE = 1;
-    //    static final int SELECT_VIDEO_REQUEST_CODE = 5;
-//    private ArrayList<Uri> selectedVideos = new ArrayList<>();
+    static final int SELECT_VIDEO_REQUEST_CODE = 5;
     private String selectedAction = "";
     private int practiceNumber = 0;
-    //    Button uploadVideoButton;
+    Button uploadVideoButton;
     Button recordVideoButton;
     Button previousScreenButton;
     TextView errorLogger;
@@ -82,15 +72,15 @@ public class ThirdActivity extends AppCompatActivity {
                 }
         );
 
-//        uploadVideoButton = (Button) findViewById(R.id.uploadVideo);
-//        uploadVideoButton.setOnClickListener(
-//                new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        selectVideosToUpload();
-//                    }
-//                }
-//        );
+        uploadVideoButton = (Button) findViewById(R.id.uploadVideo);
+        uploadVideoButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        selectVideoToUpload();
+                    }
+                }
+        );
 
         if (extras != null) {
             selectedAction = extras.getString("selectedAction");
@@ -99,7 +89,6 @@ public class ThirdActivity extends AppCompatActivity {
 
         dispatchTakeVideoIntent(selectedAction);
     }
-
 
     private void dispatchTakeVideoIntent(String selectedAction) {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
@@ -113,16 +102,16 @@ public class ThirdActivity extends AppCompatActivity {
         }
     }
 
-//    private void selectVideosToUpload() {
-//        Intent selectVideoIntent = new Intent().setType("video/*").putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true).setAction(Intent.ACTION_GET_CONTENT);
-//        startActivityForResult(Intent.createChooser(selectVideoIntent, "Select Videos"), SELECT_VIDEO_REQUEST_CODE);
-//    }
+    private void selectVideoToUpload() {
+        Intent selectVideoIntent = new Intent().setType("video/*").putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false).setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(selectVideoIntent, "Select Video"), SELECT_VIDEO_REQUEST_CODE);
+    }
 
     @SuppressLint("WrongConstant")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_VIDEO_CAPTURE) {
+        if (requestCode == REQUEST_VIDEO_CAPTURE || requestCode == SELECT_VIDEO_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Uri videoUri = data.getData();
                 uploadVideoToDatabase(selectedAction, videoUri);
@@ -133,88 +122,8 @@ public class ThirdActivity extends AppCompatActivity {
                 helper.Toastyyy(getApplicationContext(), "Failed to Record Video");
             }
         }
-//        else if (requestCode == SELECT_VIDEO_REQUEST_CODE) {
-//            if (resultCode == RESULT_OK) {
-//                if (data.getClipData() != null) {
-//                    int count = data.getClipData().getItemCount();
-//                    for (int i = 0; i < count; i++) {
-//                        selectedVideos.add(data.getClipData().getItemAt(i).getUri());
-//                    }
-//                } else {
-//                    selectedVideos.add(data.getData());
-//                }
-//
-//                String zipFileName = "MENDEZ_TIMOTHY_Gestures.zip";
-//                String zipFileLocation = Environment.getExternalStorageDirectory() + "/" + zipFileName;
-//                try {
-//                    zipFiles(selectedVideos, zipFileLocation);
-//                    uploadZippedVideosToDatabase(selectedAction, zipFileLocation);
-//                } catch (IOException e) {
-//                    helper.Toastyyy(getApplicationContext(), "Error uploading video");
-//                    errorLogger.setText(e.getMessage());
-//                }
-//            } else if (resultCode == RESULT_CANCELED) {
-//                helper.Toastyyy(getApplicationContext(), "Video Selection Cancelled");
-//            } else {
-//                helper.Toastyyy(getApplicationContext(), "Failed to Select Videos");
-//            }
-//        }
     }
 
-//    private void zipFiles(ArrayList<Uri> videoFiles, String zipFileLocation) throws IOException {
-//        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileLocation));
-//        for (Uri fileUri : videoFiles) {
-//            File file = new File(fileUri.getPath());
-//            file.setReadable(true);
-//            file.setWritable(true);
-//            String fileName = helper.getFileName(getContentResolver(), fileUri);
-//            FileInputStream fileInputStream = new FileInputStream(file);
-//            ZipEntry zipEntry = new ZipEntry(fileName);
-//            zipOutputStream.putNextEntry(zipEntry);
-//            byte[] bytes = new byte[1024];
-//            int length;
-//            while ((length = fileInputStream.read(bytes)) >= 0) {
-//                zipOutputStream.write(bytes, 0, length);
-//            }
-//            zipOutputStream.closeEntry();
-//            fileInputStream.close();
-//        }
-//        zipOutputStream.close();
-//    }
-//
-//    private void uploadZippedVideosToDatabase(String selectedAction, String zipFileLocation) {
-//        FirebaseStorage storage = FirebaseStorage.getInstance();
-//        StorageReference storageReference = storage.getReference();
-//        StorageReference zipFileReference = storageReference.child("Mendez_Feliciano_Gestures.zip");
-//        Uri zippedFileUri = Uri.fromFile(new File(zipFileLocation));
-//
-//        UploadTask uploadTask = zipFileReference.putFile(zippedFileUri);
-//
-//        uploadTask.addOnProgressListener(snapshot -> {
-//            previousScreenButton.setEnabled(false);
-//            recordVideoButton.setEnabled(false);
-//            spinner.setVisibility(View.VISIBLE);
-//        });
-//
-//        uploadTask.addOnFailureListener(new OnFailureListener() {
-//            @Override
-//            public void onFailure(@NonNull Exception e) {
-//                helper.Toastyyy(getApplicationContext(), "Upload Failed");
-//                errorLogger.setText(e.getCause().toString());
-//            }
-//        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//            @Override
-//            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                helper.Toastyyy(getApplicationContext(), "Upload Succesful!");
-//                errorLogger.setText("Record another video.");
-//                practiceNumber++;
-//            }
-//        });
-//        spinner.setVisibility(View.GONE);
-//        recordVideoButton.setEnabled(true);
-//        previousScreenButton.setEnabled(true);
-//
-//    }
 
     private void uploadVideoToDatabase(String selectedAction, Uri videoUri) {
 
@@ -236,6 +145,9 @@ public class ThirdActivity extends AppCompatActivity {
             public void onFailure(@NonNull Exception e) {
                 helper.Toastyyy(getApplicationContext(), "Upload Failed");
                 errorLogger.setText(e.getCause().toString());
+                spinner.setVisibility(View.GONE);
+                recordVideoButton.setEnabled(true);
+                previousScreenButton.setEnabled(true);
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
@@ -243,11 +155,12 @@ public class ThirdActivity extends AppCompatActivity {
                 helper.Toastyyy(getApplicationContext(), "Upload Succesful!");
                 errorLogger.setText("Record another video.");
                 practiceNumber++;
+                spinner.setVisibility(View.GONE);
+                recordVideoButton.setEnabled(true);
+                previousScreenButton.setEnabled(true);
             }
         });
-        spinner.setVisibility(View.GONE);
-        recordVideoButton.setEnabled(true);
-        previousScreenButton.setEnabled(true);
+
     }
 
     private Boolean hasFrontCamera() {
